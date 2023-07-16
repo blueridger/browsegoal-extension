@@ -2,9 +2,9 @@
 
 This is a Firefox/Chrome Extension that lets you set a goal when visiting a distracting website, and then keeps that goal on-screen so you don't forget.
 
-[Get for Firefox >](https://addons.mozilla.org/en-US/firefox/addon/browsegoal/)
+# [Get for Firefox >](https://addons.mozilla.org/en-US/firefox/addon/browsegoal/)
 
-[Get for Chrome >](https://chrome.google.com/webstore/detail/browsegoal/fbjhfmebbdkmhgpmofcibfhegpiafpof)
+# [Get for Chrome >](https://chrome.google.com/webstore/detail/browsegoal/fbjhfmebbdkmhgpmofcibfhegpiafpof)
 
 ## Submit feedback
 
