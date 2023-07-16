@@ -11,6 +11,13 @@ body {
   min-width: 30rem;
 }
 
+a {
+  font-size: 90%;
+  margin-left: 1rem;
+  width: max-content;
+  height: max-content;
+}
+
 .form-row {
   display: flex;
   flex-direction: column;

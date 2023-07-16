@@ -1,3 +1,5 @@
+const FOUR_HOURS_MS = 14400000;
+
 var dragging = false;
 function dragElement(elmnt) {
   var pos1 = 0,
@@ -92,6 +94,7 @@ function addOverlayElement() {
 
 </div>
 `;
+  //addOverlayElement
   document.body.append(div.firstChild);
   document.getElementById("overlay").style.display = "flex";
   document.getElementById("reasonInput").focus();
@@ -100,7 +103,10 @@ function addOverlayElement() {
     document.getElementById("banner-message").textContent = reason;
     document.getElementById("overlay").style.display = "none";
     browser.storage.sync.set({
-      [`reason-${window.location.hostname}`]: reason,
+      [`v2-reason-${window.location.hostname}`]: {
+        reasons: [reason],
+        created_at_ms: Date.now(),
+      },
     });
     document.getElementById("overlay").remove();
   }
@@ -123,47 +129,58 @@ function addBannerElement() {
   const div = document.createElement("div");
   div.innerHTML = `<div id="banner" style="
   width: 100%;
-  max-width: max-content;
+  max-width: 100%;
   height: max-content;
   right: 0;
   bottom: 0;
-  background-color: #3ac241;
-  z-index: 9999999;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
   position: fixed;
-  cursor: grab;
-  border-radius: 0.5rem;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
-  color: #fff;
+  z-index: 9999999;
+  padding: 1rem;
+  display: flex;
+  justify-content: end;
 ">
-
-  <div id="banner-message" style="
-    padding-left: 1.5rem;
-    font-size: 1rem;
-    white-space: break-spaces;
-  "></div>
-
-  <div id="banner-close" type="button" style="
-    cursor: pointer;
-    font-size: 0.75rem;
-    text-decoration: underline;
-    padding: 0.5rem;
-    margin: 1rem;
+  <div style="
+    height: max-content;
+    width: 100% - 2rem;
+    max-width: max-content;
+    background-color: #4caf50;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    cursor: grab;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
     color: #fff;
-    transition: background-color 0.3s ease;
-  ">Mark complete</div>
+    margin-left: 2rem;
+  ">
+    <div id="banner-message" style="
+      padding-left: 1.5rem;
+      font-size: 1rem;
+      white-space: break-spaces;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    "></div>
 
+    <div id="banner-close" type="button" style="
+      cursor: pointer;
+      font-size: 0.75rem;
+      text-decoration: underline;
+      padding: 0.5rem;
+      margin: 1rem;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    ">Mark complete</div>
+  </div>
 </div>
 `;
+  //addBannerElement
   document.body.insertBefore(div.firstChild, document.body.firstChild);
   dragging = false;
   document.getElementById("banner-close").addEventListener("click", (event) => {
     if (dragging) return;
     event.stopPropagation();
     browser.storage.sync
-      .remove(`reason-${window.location.hostname}`)
+      .remove(`v2-reason-${window.location.hostname}`)
       .then(() => browser.storage.sync.get(["shouldUseHomepage", "homepage"]))
       .then((result) => {
         if (result.shouldUseHomepage && result.homepage) {
@@ -196,7 +213,7 @@ function addBannerElement() {
   });
 }
 
-function escapeRegExp(string) {
+function escapeRegExpAndInterpretWildcards(string) {
   return string.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/[*]/g, ".$&"); // $& means the whole matched string
 }
 
@@ -204,14 +221,21 @@ function main(results) {
   if (results.urlPatterns) {
     for (const pattern of results.urlPatterns) {
       if (
-        new RegExp("^" + escapeRegExp(pattern), "i").test(window.location.href)
+        new RegExp("^" + escapeRegExpAndInterpretWildcards(pattern), "i").test(
+          window.location.href
+        )
       ) {
-        browser.storage.sync.get(`reason-${window.location.hostname}`).then(
+        browser.storage.sync.get(`v2-reason-${window.location.hostname}`).then(
           (results) => {
-            if (results[`reason-${window.location.hostname}`]) {
+            if (
+              results[`v2-reason-${window.location.hostname}`] &&
+              results[`v2-reason-${window.location.hostname}`].created_at_ms +
+                FOUR_HOURS_MS >
+                Date.now()
+            ) {
               addBannerElement();
               document.getElementById("banner-message").textContent =
-                results[`reason-${window.location.hostname}`];
+                results[`v2-reason-${window.location.hostname}`].reasons[0];
             } else {
               addOverlayElement();
               document.getElementById("overlay").style.display = "flex";

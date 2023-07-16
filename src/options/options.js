@@ -14,8 +14,8 @@ function saveOptions() {
     .value.split("\n")
     .map((pattern) => pattern.trim())
     .filter((pattern) => pattern);
-  let homepage = document.getElementById("homepage").value;
-  if (!homepage.startsWith("http")) homepage = "https://" + homepage;
+  let homepage = document.getElementById("homepage").value.trim();
+  if (homepage && !homepage.startsWith("http")) homepage = "https://" + homepage;
 
   browser.storage.sync.set({
     urlPatterns,
