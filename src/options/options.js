@@ -51,6 +51,7 @@ function restoreOptions() {
         "https://*.facebook.com",
         "https://*.twitter.com",
         "https://*.instagram.com",
+        "https://*.amazon.com",
       ];
       document.getElementById("urlPatterns").value = urlPatterns.join("\n");
 

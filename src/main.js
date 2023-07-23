@@ -1,12 +1,12 @@
 const FOUR_HOURS_MS = 14400000;
 
 var dragging = false;
-function dragElement(elmnt) {
+function dragElement(elmnt, touchElmnt) {
   var pos1 = 0,
     pos2 = 0,
     pos3 = 0,
     pos4 = 0;
-  elmnt.onmousedown = dragMouseDown;
+    touchElmnt.onmousedown = dragMouseDown;
 
   function dragMouseDown(e) {
     e = e || window.event;
@@ -135,11 +135,12 @@ function addBannerElement() {
   bottom: 0;
   position: fixed;
   z-index: 9999999;
-  padding: 1rem;
+  margin-bottom: 1rem;
+  margin-right: 1rem;
   display: flex;
   justify-content: end;
 ">
-  <div style="
+  <div id="banner-card" style="
     height: max-content;
     width: 100% - 2rem;
     max-width: max-content;
@@ -154,7 +155,7 @@ function addBannerElement() {
     margin-left: 2rem;
   ">
     <div id="banner-message" style="
-      padding-left: 1.5rem;
+      margin-left: 1.5rem;
       font-size: 1rem;
       white-space: break-spaces;
       margin-top: 1rem;
@@ -194,20 +195,23 @@ function addBannerElement() {
       });
     document.getElementById("banner").remove();
   });
-  dragElement(document.getElementById("banner"));
-  document.getElementById("banner").addEventListener("touchmove", function (e) {
+  dragElement(document.getElementById("banner"), document.getElementById("banner-card"));
+  document.getElementById("banner-card").addEventListener("touchmove", function (e) {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     var touchLocation = e.targetTouches[0];
     var banner = document.getElementById("banner");
+    var bannerCard = document.getElementById("banner-card");
 
     banner.style.left =
-      touchLocation.pageX - window.scrollX - banner.offsetWidth / 2 + "px";
+      touchLocation.pageX - window.scrollX - banner.offsetWidth +
+        (bannerCard.offsetWidth * 5 / 8) + "px";
     banner.style.top =
-      touchLocation.pageY - window.scrollY - banner.offsetHeight / 2 + "px";
+      touchLocation.pageY - window.scrollY - banner.offsetHeight*3/4 + "px";
   });
 
-  document.getElementById("banner").addEventListener("touchend", function (e) {
+  document.getElementById("banner-card").addEventListener("touchend", function (e) {
     var x = parseInt(box.style.left);
     var y = parseInt(box.style.top);
   });
@@ -244,6 +248,7 @@ function main(results) {
           (error) => console.log(`Error: ${error}`)
         );
       }
+      return;
     }
   }
 }
