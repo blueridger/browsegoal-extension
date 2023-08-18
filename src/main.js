@@ -128,6 +128,7 @@ function addBannerElement() {
   if (document.getElementById("banner")) return;
   const div = document.createElement("div");
   div.innerHTML = `<div id="banner" style="
+  pointer-events: none;
   width: 100%;
   max-width: 100%;
   height: max-content;
@@ -141,6 +142,7 @@ function addBannerElement() {
   justify-content: end;
 ">
   <div id="banner-card" style="
+    pointer-events: visible;
     height: max-content;
     width: 100% - 2rem;
     max-width: max-content;
