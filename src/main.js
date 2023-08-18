@@ -37,6 +37,25 @@ function dragElement(elmnt, touchElmnt) {
   }
 }
 
+const getPatternsAndMatch = () => browser.storage.sync.get("urlPatterns").then(results => {
+  const patterns = results.urlPatterns ?? [
+    "https://*.facebook.com",
+    "https://*.twitter.com",
+    "https://*.instagram.com",
+    "https://*.youtube.com",
+    "https://*.amazon.com",
+  ]
+  for (const pattern of patterns) {
+    if (
+      new RegExp("^" + escapeRegExpAndInterpretWildcards(pattern), "i").test(
+        window.location.href
+      )
+    )
+    return Promise.resolve(pattern);
+    else return Promise.reject(null);
+  }
+}, console.log)
+
 function addOverlayElement() {
   if (document.getElementById("overlay")) return;
   const div = document.createElement("div");
@@ -102,12 +121,12 @@ function addOverlayElement() {
     addBannerElement();
     document.getElementById("banner-message").textContent = reason;
     document.getElementById("overlay").style.display = "none";
-    browser.storage.sync.set({
-      [`v2-reason-${window.location.hostname}`]: {
+    getPatternsAndMatch().then(pattern => browser.storage.sync.set({
+      [`v2-reason-${pattern}`]: {
         reasons: [reason],
         created_at_ms: Date.now(),
       },
-    });
+    }));
     document.getElementById("overlay").remove();
   }
   document
@@ -182,8 +201,8 @@ function addBannerElement() {
   document.getElementById("banner-close").addEventListener("click", (event) => {
     if (dragging) return;
     event.stopPropagation();
-    browser.storage.sync
-      .remove(`v2-reason-${window.location.hostname}`)
+    getPatternsAndMatch().then(pattern=> browser.storage.sync
+      .remove(`v2-reason-${pattern}`)
       .then(() => browser.storage.sync.get(["shouldUseHomepage", "homepage"]))
       .then((result) => {
         if (result.shouldUseHomepage && result.homepage) {
@@ -194,7 +213,7 @@ function addBannerElement() {
           document.getElementById("overlay").style.display = "flex";
           document.getElementById("reasonInput").focus();
         }
-      });
+      }));
     document.getElementById("banner").remove();
   });
   dragElement(document.getElementById("banner"), document.getElementById("banner-card"));
@@ -223,35 +242,23 @@ function escapeRegExpAndInterpretWildcards(string) {
   return string.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/[*]/g, ".$&"); // $& means the whole matched string
 }
 
-function main(results) {
-  if (results.urlPatterns) {
-    for (const pattern of results.urlPatterns) {
+(function main() {
+  getPatternsAndMatch().then(pattern=>browser.storage.sync.get(`v2-reason-${pattern}`).then(
+    (results) => {
       if (
-        new RegExp("^" + escapeRegExpAndInterpretWildcards(pattern), "i").test(
-          window.location.href
-        )
+        results[`v2-reason-${pattern}`] &&
+        results[`v2-reason-${pattern}`].created_at_ms +
+          FOUR_HOURS_MS >
+          Date.now()
       ) {
-        browser.storage.sync.get(`v2-reason-${window.location.hostname}`).then(
-          (results) => {
-            if (
-              results[`v2-reason-${window.location.hostname}`] &&
-              results[`v2-reason-${window.location.hostname}`].created_at_ms +
-                FOUR_HOURS_MS >
-                Date.now()
-            ) {
-              addBannerElement();
-              document.getElementById("banner-message").textContent =
-                results[`v2-reason-${window.location.hostname}`].reasons[0];
-            } else {
-              addOverlayElement();
-              document.getElementById("overlay").style.display = "flex";
-            }
-          },
-          (error) => console.log(`Error: ${error}`)
-        );
+        addBannerElement();
+        document.getElementById("banner-message").textContent =
+          results[`v2-reason-${pattern}`].reasons[0];
+      } else {
+        addOverlayElement();
+        document.getElementById("overlay").style.display = "flex";
       }
-      return;
-    }
-  }
-}
-browser.storage.sync.get("urlPatterns").then(main, console.log);
+    },
+    (error) => console.log(`Error: ${error}`)
+  ));
+})();

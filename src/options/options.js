@@ -33,11 +33,11 @@ function handleInputEvent(event) {
       : "homepageSaveMessage";
   const saveMessage = document.getElementById(saveMessageId);
   if (saveMessage) {
-    saveMessage.style.display = "block";
+    saveMessage.innerHTML = "Changes saved!";
     clearTimeout(saveMessageTimeout);
     saveMessageTimeout = setTimeout(() => {
       Array.from(document.getElementsByClassName("save-message")).forEach(
-        (saveMessage) => (saveMessage.style.display = "none")
+        (saveMessage) => (saveMessage.innerHTML = "")
       );
     }, 2000);
   }
@@ -64,11 +64,6 @@ function restoreOptions() {
 }
 
 document.addEventListener("DOMContentLoaded", restoreOptions);
-
-const saveMessages = document.getElementsByClassName("save-message");
-Array.from(saveMessages).forEach((message) => {
-  message.style.display = "none";
-});
 
 const inputs = document.getElementsByTagName("input");
 Array.from(inputs).forEach((input) => {

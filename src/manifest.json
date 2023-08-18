@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "BrowseGoal",
-  "version": "1.2.4",
+  "version": "1.2.5",
 
   "description": "Set a goal when visiting distracting sites to keep focused.",
 
@@ -20,6 +20,14 @@
   ],
   "options_ui": {
     "page": "options/options.html"
+  },
+
+  "browser_action": {
+    "default_icon": {
+      "32": "icons/icon-48.png"
+    },
+    "default_title": "Whereami?",
+    "default_popup": "options/options.html"
   },
 
   "permissions": ["storage"],

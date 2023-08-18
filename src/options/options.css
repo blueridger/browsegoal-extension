@@ -59,6 +59,7 @@ a {
   align-self: center;
   height: min-content;
   padding-left: 2rem;
+  min-width: 15rem;
 }
 
 .checkbox-container {
@@ -70,4 +71,5 @@ a {
 .checkbox-label {
   font-weight: bold;
   padding-left: 0.5rem;
+  min-width: fit-content;
 }
