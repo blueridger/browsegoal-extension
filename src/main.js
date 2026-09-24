@@ -6,7 +6,7 @@ function dragElement(elmnt, touchElmnt) {
     pos2 = 0,
     pos3 = 0,
     pos4 = 0;
-    touchElmnt.onmousedown = dragMouseDown;
+  touchElmnt.onmousedown = dragMouseDown;
 
   function dragMouseDown(e) {
     e = e || window.event;
@@ -37,24 +37,25 @@ function dragElement(elmnt, touchElmnt) {
   }
 }
 
-const getPatternsAndMatch = () => browser.storage.sync.get("urlPatterns").then(results => {
-  const patterns = results.urlPatterns ?? [
-    "https://*.facebook.com",
-    "https://*.twitter.com",
-    "https://*.instagram.com",
-    "https://*.youtube.com",
-    "https://*.amazon.com",
-  ]
-  for (const pattern of patterns) {
-    if (
-      new RegExp("^" + escapeRegExpAndInterpretWildcards(pattern), "i").test(
-        window.location.href
+const getPatternsAndMatch = () =>
+  browser.storage.sync.get("urlPatterns").then((results) => {
+    const patterns = results.urlPatterns ?? [
+      "https://*.facebook.com",
+      "https://*.twitter.com",
+      "https://*.instagram.com",
+      "https://*.youtube.com",
+      "https://*.amazon.com",
+    ];
+    for (const pattern of patterns) {
+      if (
+        new RegExp("^" + escapeRegExpAndInterpretWildcards(pattern), "i").test(
+          window.location.href,
+        )
       )
-    )
-    return Promise.resolve(pattern);
-    else return Promise.reject(null);
-  }
-}, console.log)
+        return pattern;
+    }
+    return null;
+  }, console.log);
 
 function addOverlayElement() {
   if (document.getElementById("overlay")) return;
@@ -121,12 +122,16 @@ function addOverlayElement() {
     addBannerElement();
     document.getElementById("banner-message").textContent = reason;
     document.getElementById("overlay").style.display = "none";
-    getPatternsAndMatch().then(pattern => browser.storage.sync.set({
-      [`v2-reason-${pattern}`]: {
-        reasons: [reason],
-        created_at_ms: Date.now(),
-      },
-    }));
+    getPatternsAndMatch().then(
+      (pattern) =>
+        pattern &&
+        browser.storage.sync.set({
+          [`v2-reason-${pattern}`]: {
+            reasons: [reason],
+            created_at_ms: Date.now(),
+          },
+        }),
+    );
     document.getElementById("overlay").remove();
   }
   document
@@ -201,41 +206,60 @@ function addBannerElement() {
   document.getElementById("banner-close").addEventListener("click", (event) => {
     if (dragging) return;
     event.stopPropagation();
-    getPatternsAndMatch().then(pattern=> browser.storage.sync
-      .remove(`v2-reason-${pattern}`)
-      .then(() => browser.storage.sync.get(["shouldUseHomepage", "homepage"]))
-      .then((result) => {
-        if (result.shouldUseHomepage && result.homepage) {
-          window.location.assign(result.homepage);
-        } else {
-          addOverlayElement();
-          document.getElementById("reasonInput").value = "";
-          document.getElementById("overlay").style.display = "flex";
-          document.getElementById("reasonInput").focus();
-        }
-      }));
+    getPatternsAndMatch().then(
+      (pattern) =>
+        pattern &&
+        browser.storage.sync
+          .remove(`v2-reason-${pattern}`)
+          .then(() =>
+            browser.storage.sync.get(["shouldUseHomepage", "homepage"]),
+          )
+          .then((result) => {
+            if (result.shouldUseHomepage && result.homepage) {
+              window.location.assign(result.homepage);
+            } else {
+              addOverlayElement();
+              document.getElementById("reasonInput").value = "";
+              document.getElementById("overlay").style.display = "flex";
+              document.getElementById("reasonInput").focus();
+            }
+          }),
+    );
     document.getElementById("banner").remove();
   });
-  dragElement(document.getElementById("banner"), document.getElementById("banner-card"));
-  document.getElementById("banner-card").addEventListener("touchmove", function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    var touchLocation = e.targetTouches[0];
-    var banner = document.getElementById("banner");
-    var bannerCard = document.getElementById("banner-card");
+  dragElement(
+    document.getElementById("banner"),
+    document.getElementById("banner-card"),
+  );
+  document
+    .getElementById("banner-card")
+    .addEventListener("touchmove", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      var touchLocation = e.targetTouches[0];
+      var banner = document.getElementById("banner");
+      var bannerCard = document.getElementById("banner-card");
 
-    banner.style.left =
-      touchLocation.pageX - window.scrollX - banner.offsetWidth +
-        (bannerCard.offsetWidth * 5 / 8) + "px";
-    banner.style.top =
-      touchLocation.pageY - window.scrollY - banner.offsetHeight*3/4 + "px";
-  });
+      banner.style.left =
+        touchLocation.pageX -
+        window.scrollX -
+        banner.offsetWidth +
+        (bannerCard.offsetWidth * 5) / 8 +
+        "px";
+      banner.style.top =
+        touchLocation.pageY -
+        window.scrollY -
+        (banner.offsetHeight * 3) / 4 +
+        "px";
+    });
 
-  document.getElementById("banner-card").addEventListener("touchend", function (e) {
-    var x = parseInt(box.style.left);
-    var y = parseInt(box.style.top);
-  });
+  document
+    .getElementById("banner-card")
+    .addEventListener("touchend", function (e) {
+      var x = parseInt(box.style.left);
+      var y = parseInt(box.style.top);
+    });
 }
 
 function escapeRegExpAndInterpretWildcards(string) {
@@ -243,22 +267,25 @@ function escapeRegExpAndInterpretWildcards(string) {
 }
 
 (function main() {
-  getPatternsAndMatch().then(pattern=>browser.storage.sync.get(`v2-reason-${pattern}`).then(
-    (results) => {
-      if (
-        results[`v2-reason-${pattern}`] &&
-        results[`v2-reason-${pattern}`].created_at_ms +
-          FOUR_HOURS_MS >
-          Date.now()
-      ) {
-        addBannerElement();
-        document.getElementById("banner-message").textContent =
-          results[`v2-reason-${pattern}`].reasons[0];
-      } else {
-        addOverlayElement();
-        document.getElementById("overlay").style.display = "flex";
-      }
-    },
-    (error) => console.log(`Error: ${error}`)
-  ));
+  getPatternsAndMatch().then(
+    (pattern) =>
+      pattern &&
+      browser.storage.sync.get(`v2-reason-${pattern}`).then(
+        (results) => {
+          if (
+            results[`v2-reason-${pattern}`] &&
+            results[`v2-reason-${pattern}`].created_at_ms + FOUR_HOURS_MS >
+              Date.now()
+          ) {
+            addBannerElement();
+            document.getElementById("banner-message").textContent =
+              results[`v2-reason-${pattern}`].reasons[0];
+          } else {
+            addOverlayElement();
+            document.getElementById("overlay").style.display = "flex";
+          }
+        },
+        (error) => console.log(`Error: ${error}`),
+      ),
+  );
 })();
