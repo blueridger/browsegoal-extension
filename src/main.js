@@ -119,6 +119,12 @@ function addOverlayElement() {
   document.getElementById("overlay").style.display = "flex";
   document.getElementById("reasonInput").focus();
   function submitReason(reason) {
+    reason = reason.trim();
+    if (!reason) {
+      document.getElementById("reasonInput").value = "";
+      document.getElementById("reasonInput").focus();
+      return;
+    }
     addBannerElement();
     document.getElementById("banner-message").textContent = reason;
     document.getElementById("overlay").style.display = "none";
