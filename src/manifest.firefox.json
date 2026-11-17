@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "BrowseGoal",
-  "version": "1.2.6",
+  "version": "1.2.7",
 
   "description": "Set a goal when visiting distracting sites to keep focused.",
 
@@ -21,7 +21,7 @@
 
   "browser_action": {
     "default_icon": {
-      "32": "icons/icon-48.png"
+      "48": "icons/icon-48.png"
     },
     "default_title": "BrowseGoal",
     "default_popup": "options/options.html"
@@ -31,7 +31,10 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "{30b8c650-73be-4cce-95bd-96380d692611}"
+      "id": "{30b8c650-73be-4cce-95bd-96380d692611}",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }
